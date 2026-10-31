@@ -14,3 +14,4 @@ dist/
 # Misc
 *.log
 .DS_Store
+*.db
