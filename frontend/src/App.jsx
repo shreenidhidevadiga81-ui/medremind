@@ -1,6 +1,18 @@
 import { useEffect, useState } from "react";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import Layout from "./components/Layout";
 import Login from "./pages/Login";
+import Dashboard from "./pages/Dashboard";
+import Nurses from "./pages/Nurses";
 import { getMe } from "./api";
+
+function ComingSoon() {
+  return (
+    <div className="bg-white rounded-2xl shadow p-6 text-slate-500 text-lg">
+      This page is coming soon.
+    </div>
+  );
+}
 
 export default function App() {
   const [token, setToken] = useState(localStorage.getItem("token"));
@@ -26,21 +38,24 @@ export default function App() {
 
   if (!token) return <Login onLoggedIn={handleLoggedIn} />;
 
-  return (
-    <div className="min-h-screen bg-[#F0FDFA] flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-lg p-8 text-center">
-        <h1 className="text-2xl font-bold text-[#0F172A]">
-          {user ? `Welcome, ${user.full_name}` : "Loading..."}
-        </h1>
-        {user && <p className="text-slate-600 mt-1 capitalize">Role: {user.role}</p>}
-        <p className="text-slate-500 mt-4">Your dashboard will appear here.</p>
-        <button
-          onClick={logout}
-          className="mt-6 rounded-lg bg-[#0F766E] text-white font-semibold px-6 py-2"
-        >
-          Log out
-        </button>
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-[#F0FDFA] flex items-center justify-center text-slate-600 text-xl">
+        Loading...
       </div>
-    </div>
+    );
+  }
+
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route element={<Layout user={user} onLogout={logout} />}>
+          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/nurses" element={<Nurses />} />
+          <Route path="*" element={<ComingSoon />} />
+        </Route>
+      </Routes>
+    </BrowserRouter>
   );
 }
