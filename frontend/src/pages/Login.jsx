@@ -2,7 +2,7 @@ import { useState } from "react";
 import Logo from "../components/Logo";
 import { login } from "../api";
 
-export default function Login({ onLoggedIn }) {
+export default function Login({ onLoggedIn, onForgot }) {
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -79,7 +79,10 @@ export default function Login({ onLoggedIn }) {
             {loading ? "Signing in..." : "Sign in"}
           </button>
 
-          <p className="text-center text-[#0F766E] font-medium cursor-pointer">
+          <p
+            onClick={onForgot}
+            className="text-center text-[#0F766E] font-medium cursor-pointer"
+          >
             Forgot password?
           </p>
         </form>

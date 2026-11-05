@@ -45,3 +45,13 @@ class NurseUpdate(BaseModel):
 
 class ResetPasswordRequest(BaseModel):
     new_password: str = Field(min_length=8)
+
+
+class ForgotPasswordRequest(BaseModel):
+    identifier: str  # username or phone number
+
+
+class ResetWithOTPRequest(BaseModel):
+    identifier: str
+    otp: str = Field(pattern=r"^[0-9]{6}$")
+    new_password: str = Field(min_length=8)

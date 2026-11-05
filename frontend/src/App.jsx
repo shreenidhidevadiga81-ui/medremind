@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import Layout from "./components/Layout";
 import Login from "./pages/Login";
+import ForgotPassword from "./pages/ForgotPassword";
 import Dashboard from "./pages/Dashboard";
 import Nurses from "./pages/Nurses";
 import { getMe } from "./api";
@@ -17,6 +18,7 @@ function ComingSoon() {
 export default function App() {
   const [token, setToken] = useState(localStorage.getItem("token"));
   const [user, setUser] = useState(null);
+  const [showForgot, setShowForgot] = useState(false);
 
   useEffect(() => {
     if (!token) return;
@@ -34,9 +36,16 @@ export default function App() {
     localStorage.removeItem("token");
     setToken(null);
     setUser(null);
+    setShowForgot(false);
   }
 
-  if (!token) return <Login onLoggedIn={handleLoggedIn} />;
+  if (!token) {
+    return showForgot ? (
+      <ForgotPassword onBack={() => setShowForgot(false)} />
+    ) : (
+      <Login onLoggedIn={handleLoggedIn} onForgot={() => setShowForgot(true)} />
+    );
+  }
 
   if (!user) {
     return (
