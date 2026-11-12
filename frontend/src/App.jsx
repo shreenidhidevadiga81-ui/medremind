@@ -5,6 +5,7 @@ import Login from "./pages/Login";
 import ForgotPassword from "./pages/ForgotPassword";
 import Dashboard from "./pages/Dashboard";
 import Nurses from "./pages/Nurses";
+import Residents from "./pages/Residents";
 import { getMe } from "./api";
 
 function ComingSoon() {
@@ -62,6 +63,7 @@ export default function App() {
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/nurses" element={<Nurses />} />
+          <Route path="/residents" element={<Residents user={user} />} />
           <Route path="*" element={<ComingSoon />} />
         </Route>
       </Routes>

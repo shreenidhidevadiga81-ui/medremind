@@ -55,3 +55,38 @@ class ResetWithOTPRequest(BaseModel):
     identifier: str
     otp: str = Field(pattern=r"^[0-9]{6}$")
     new_password: str = Field(min_length=8)
+
+    
+
+class ResidentCreate(BaseModel):
+    full_name: str = Field(min_length=2, max_length=100)
+    id_number: str | None = Field(default=None, max_length=50)
+    age: int | None = Field(default=None, ge=0, le=130)
+    gender: str | None = Field(default=None, max_length=10)
+    room: str | None = Field(default=None, max_length=20)
+    medical_conditions: str | None = None
+    allergies: str | None = None
+    contact_number: str | None = Field(default=None, pattern=r"^[0-9]{10}$")
+    # optional: create a family login together with the resident
+    family_full_name: str | None = Field(default=None, min_length=2, max_length=100)
+    family_username: str | None = Field(default=None, min_length=3, max_length=50)
+    family_phone: str | None = Field(default=None, pattern=r"^[0-9]{10}$")
+    family_password: str | None = Field(default=None, min_length=8)
+
+
+class ResidentOut(BaseModel):
+    id: int
+    resident_number: str
+    full_name: str
+    id_number: str | None
+    age: int | None
+    gender: str | None
+    room: str | None
+    medical_conditions: str | None
+    allergies: str | None
+    contact_number: str | None
+    assigned_nurse_id: int | None
+    family_user_id: int | None
+    status: str
+
+    model_config = {"from_attributes": True}

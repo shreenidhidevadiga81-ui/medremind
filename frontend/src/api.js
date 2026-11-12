@@ -30,7 +30,7 @@ async function request(path, { method = "GET", token, body } = {}) {
   } catch {
     throw new Error("Cannot reach the server. Is the backend running?");
   }
- if (res.status === 401 && token) {
+  if (res.status === 401 && token) {
     localStorage.removeItem("token");
     window.location.reload();
     throw new Error("Your session expired. Please sign in again.");
@@ -59,7 +59,7 @@ export const resetNursePassword = (token, id, newPassword) =>
     body: { new_password: newPassword },
   });
 
-  export const forgotPassword = (identifier) =>
+export const forgotPassword = (identifier) =>
   request("/auth/forgot-password", { method: "POST", body: { identifier } });
 
 export const resetWithOtp = (identifier, otp, newPassword) =>
@@ -67,3 +67,11 @@ export const resetWithOtp = (identifier, otp, newPassword) =>
     method: "POST",
     body: { identifier, otp, new_password: newPassword },
   });
+
+export const listResidents = (token, search = "") =>
+  request(`/residents${search ? `?search=${encodeURIComponent(search)}` : ""}`, { token });
+
+export const createResident = (token, data) =>
+  request("/residents", { method: "POST", token, body: data });
+
+export const getResident = (token, id) => request(`/residents/${id}`, { token });

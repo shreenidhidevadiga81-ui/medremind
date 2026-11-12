@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from . import models  # noqa: F401
 from .database import Base, SessionLocal, engine
-from .routers import auth, nurses
+from .routers import auth, nurses, residents
 from .seed import seed_admin
 
 Base.metadata.create_all(bind=engine)
@@ -22,6 +22,7 @@ app.add_middleware(
 
 app.include_router(auth.router)
 app.include_router(nurses.router)
+app.include_router(residents.router)
 
 
 @app.get("/")
