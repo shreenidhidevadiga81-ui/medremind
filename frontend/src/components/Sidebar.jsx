@@ -5,6 +5,7 @@ const adminLinks = [
   { to: "/dashboard", label: "Dashboard", icon: "🏠" },
   { to: "/nurses", label: "Nurses", icon: "👩‍⚕️" },
   { to: "/residents", label: "Residents", icon: "🧓" },
+  { to: "/doses", label: "Today's doses", icon: "💊" },
   { to: "/attendance", label: "Attendance", icon: "🕒" },
   { to: "/complaints", label: "Complaints", icon: "💬" },
   { to: "/activity", label: "Activity log", icon: "📋" },

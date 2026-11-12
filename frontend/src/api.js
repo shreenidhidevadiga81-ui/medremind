@@ -75,3 +75,23 @@ export const createResident = (token, data) =>
   request("/residents", { method: "POST", token, body: data });
 
 export const getResident = (token, id) => request(`/residents/${id}`, { token });
+
+export const listMedicines = (token, residentId) =>
+  request(`/residents/${residentId}/medicines`, { token });
+
+export const addMedicine = (token, residentId, data) =>
+  request(`/residents/${residentId}/medicines`, { method: "POST", token, body: data });
+
+export const stopMedicine = (token, medicineId) =>
+  request(`/medicines/${medicineId}/stop`, { method: "POST", token });
+
+export const getTodaysDoses = (token) => request("/doses/today", { token });
+
+export const markDose = (token, doseId, status, note = null) =>
+  request(`/doses/${doseId}/mark`, { method: "POST", token, body: { status, note } });
+
+export const listVitals = (token, residentId) =>
+  request(`/residents/${residentId}/vitals`, { token });
+
+export const recordVitals = (token, residentId, data) =>
+  request(`/residents/${residentId}/vitals`, { method: "POST", token, body: data });
