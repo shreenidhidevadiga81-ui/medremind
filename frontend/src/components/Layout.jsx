@@ -4,7 +4,7 @@ import Sidebar from "./Sidebar";
 export default function Layout({ user, onLogout }) {
   return (
     <div className="flex min-h-screen bg-[#F0FDFA]">
-      <Sidebar />
+      <Sidebar role={user.role} />
 
       <div className="flex-1 flex flex-col">
         <header className="bg-white shadow-sm px-8 py-4 flex items-center justify-between">

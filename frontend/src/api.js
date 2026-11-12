@@ -95,3 +95,5 @@ export const listVitals = (token, residentId) =>
 
 export const recordVitals = (token, residentId, data) =>
   request(`/residents/${residentId}/vitals`, { method: "POST", token, body: data });
+
+export const getDashboard = (token) => request("/dashboard", { token });

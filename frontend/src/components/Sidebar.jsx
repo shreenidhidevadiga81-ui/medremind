@@ -11,7 +11,26 @@ const adminLinks = [
   { to: "/activity", label: "Activity log", icon: "📋" },
 ];
 
-export default function Sidebar({ links = adminLinks }) {
+const nurseLinks = [
+  { to: "/doses", label: "Today's doses", icon: "💊" },
+  { to: "/residents", label: "Residents", icon: "🧓" },
+  { to: "/attendance", label: "Attendance", icon: "🕒" },
+];
+
+const familyLinks = [
+  { to: "/residents", label: "My relative", icon: "🧓" },
+  { to: "/complaints", label: "Complaints", icon: "💬" },
+];
+
+const linksByRole = {
+  admin: adminLinks,
+  nurse: nurseLinks,
+  family: familyLinks,
+};
+
+export default function Sidebar({ role = "admin" }) {
+  const links = linksByRole[role] || adminLinks;
+
   return (
     <aside className="w-64 shrink-0 bg-[#0F766E] text-white min-h-screen flex flex-col">
       <div className="flex items-center gap-3 px-5 py-5 border-b border-white/20">

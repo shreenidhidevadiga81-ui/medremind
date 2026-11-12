@@ -17,6 +17,12 @@ function ComingSoon() {
   );
 }
 
+const homeByRole = {
+  admin: "/dashboard",
+  nurse: "/doses",
+  family: "/residents",
+};
+
 export default function App() {
   const [token, setToken] = useState(localStorage.getItem("token"));
   const [user, setUser] = useState(null);
@@ -57,13 +63,22 @@ export default function App() {
     );
   }
 
+  const home = homeByRole[user.role] || "/dashboard";
+  const isAdmin = user.role === "admin";
+
   return (
     <BrowserRouter>
       <Routes>
         <Route element={<Layout user={user} onLogout={logout} />}>
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/nurses" element={<Nurses />} />
+          <Route path="/" element={<Navigate to={home} replace />} />
+          <Route
+            path="/dashboard"
+            element={isAdmin ? <Dashboard /> : <Navigate to={home} replace />}
+          />
+          <Route
+            path="/nurses"
+            element={isAdmin ? <Nurses /> : <Navigate to={home} replace />}
+          />
           <Route path="/residents" element={<Residents user={user} />} />
           <Route path="/doses" element={<Doses user={user} />} />
           <Route path="*" element={<ComingSoon />} />
