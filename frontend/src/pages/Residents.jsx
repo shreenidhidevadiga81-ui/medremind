@@ -159,3 +159,140 @@ export default function Residents({ user }) {
 
           <div className="border-t border-slate-200 pt-5">
             <h3 className="text-lg font-semibold text-[#0F172A]">Family login (optional)</h3>
+            <p className="text-slate-500 mb-4">
+              Fill all four boxes to create a login for the family. Leave all empty to skip.
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <Field label="Family member name" name="family_full_name"
+                value={form.family_full_name} onChange={updateField} />
+              <Field label="Family username" name="family_username"
+                value={form.family_username} onChange={updateField}
+                hint="At least 3 characters" />
+              <Field label="Family phone number" name="family_phone"
+                value={form.family_phone} onChange={updateField}
+                inputMode="numeric" maxLength={10} hint="10 digits" />
+              <Field label="Temporary password" name="family_password"
+                value={form.family_password} onChange={updateField}
+                hint="At least 8 characters. Give it to the family." />
+            </div>
+          </div>
+
+          {formError && (
+            <div className="rounded-lg bg-red-50 border border-[#DC2626] text-[#DC2626] px-4 py-3">
+              {formError}
+            </div>
+          )}
+
+          <button
+            type="submit"
+            disabled={saving}
+            className="rounded-lg bg-[#0F766E] hover:bg-[#115e59] disabled:opacity-60 text-white font-semibold px-6 py-3 text-lg"
+          >
+            {saving ? "Saving..." : "Register resident"}
+          </button>
+        </form>
+      )}
+
+      <form onSubmit={handleSearch} className="flex gap-3 mb-4">
+        <input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search by name, ID or resident number"
+          className="flex-1 rounded-lg border border-slate-300 px-4 py-3 text-lg focus:outline-none focus:ring-2 focus:ring-[#0F766E]"
+        />
+        <button
+          type="submit"
+          className="rounded-lg bg-[#0F766E] hover:bg-[#115e59] text-white font-semibold px-6 py-3 text-lg"
+        >
+          Search
+        </button>
+      </form>
+
+      {error && (
+        <div className="rounded-lg bg-red-50 border border-[#DC2626] text-[#DC2626] px-4 py-3 mb-4">
+          {error}
+        </div>
+      )}
+
+      <div className="bg-white rounded-2xl shadow overflow-x-auto">
+        <table className="w-full text-left">
+          <thead className="bg-[#F0FDFA] text-slate-600">
+            <tr>
+              <th className="px-6 py-4">No.</th>
+              <th className="px-6 py-4">Name</th>
+              <th className="px-6 py-4">Age</th>
+              <th className="px-6 py-4">Room</th>
+              <th className="px-6 py-4">Conditions</th>
+              <th className="px-6 py-4">Status</th>
+              <th className="px-6 py-4">Care</th>
+            </tr>
+          </thead>
+          <tbody>
+            {loading && (
+              <tr>
+                <td colSpan="7" className="px-6 py-6 text-slate-500">Loading...</td>
+              </tr>
+            )}
+            {!loading && residents.length === 0 && !error && (
+              <tr>
+                <td colSpan="7" className="px-6 py-6 text-slate-500">No residents found.</td>
+              </tr>
+            )}
+            {residents.map((r) => (
+              <tr key={r.id} className="border-t border-slate-100 text-lg">
+                <td className="px-6 py-4">{r.resident_number}</td>
+                <td className="px-6 py-4 font-medium text-[#0F172A]">{r.full_name}</td>
+                <td className="px-6 py-4">{r.age ?? "-"}</td>
+                <td className="px-6 py-4">{r.room ?? "-"}</td>
+                <td className="px-6 py-4">{r.medical_conditions ?? "-"}</td>
+                <td className="px-6 py-4">
+                  {r.status === "active" ? (
+                    <span className="rounded-full bg-green-100 text-[#16A34A] px-3 py-1 text-sm font-semibold">
+                      Active
+                    </span>
+                  ) : (
+                    <span className="rounded-full bg-slate-200 text-slate-600 px-3 py-1 text-sm font-semibold">
+                      Discharged
+                    </span>
+                  )}
+                </td>
+                <td className="px-6 py-4">
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setSelected(r)}
+                      className="rounded-lg bg-[#0F766E] hover:bg-[#115e59] text-white font-semibold px-4 py-2"
+                    >
+                      💊 Medicines
+                    </button>
+                    <button
+                      onClick={() => setSelectedVitals(r)}
+                      className="rounded-lg bg-[#0F766E] hover:bg-[#115e59] text-white font-semibold px-4 py-2"
+                    >
+                      🩺 Vitals
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {selected && (
+        <MedicinesPanel
+          resident={selected}
+          user={user}
+          onClose={() => setSelected(null)}
+        />
+      )}
+
+      {selectedVitals && (
+        <VitalsPanel
+          resident={selectedVitals}
+          user={user}
+          onClose={() => setSelectedVitals(null)}
+        />
+      )}
+    </div>
+  );
+}
