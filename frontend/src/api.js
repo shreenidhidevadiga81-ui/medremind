@@ -112,3 +112,14 @@ export const markLeave = (token) =>
 
 export const listAttendance = (token, day = "") =>
   request(`/attendance${day ? `?day=${day}` : ""}`, { token });
+
+export const sendComplaint = (token, message) =>
+  request("/complaints", { method: "POST", token, body: { message } });
+
+export const listMyComplaints = (token) =>
+  request("/complaints/mine", { token });
+
+export const listComplaints = (token) => request("/complaints", { token });
+
+export const setComplaintStatus = (token, id, status) =>
+  request(`/complaints/${id}/status`, { method: "POST", token, body: { status } });

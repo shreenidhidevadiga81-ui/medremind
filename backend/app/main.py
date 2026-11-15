@@ -3,7 +3,16 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from . import models  # noqa: F401
 from .database import Base, SessionLocal, engine
-from .routers import attendance, auth, dashboard, medicines, nurses, residents, vitals  # CHANGED
+from .routers import (
+    attendance,
+    auth,
+    complaints,
+    dashboard,
+    medicines,
+    nurses,
+    residents,
+    vitals,
+)
 from .seed import seed_admin
 
 Base.metadata.create_all(bind=engine)
@@ -26,7 +35,8 @@ app.include_router(residents.router)
 app.include_router(medicines.router)
 app.include_router(vitals.router)
 app.include_router(dashboard.router)
-app.include_router(attendance.router)  # NEW
+app.include_router(attendance.router)
+app.include_router(complaints.router)
 
 
 @app.get("/")

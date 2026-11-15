@@ -9,6 +9,7 @@ import Residents from "./pages/Residents";
 import Doses from "./pages/Doses";
 import MyAttendance from "./pages/MyAttendance";
 import Attendance from "./pages/Attendance";
+import Complaints from "./pages/Complaints";
 import { getMe } from "./api";
 
 function ComingSoon() {
@@ -68,29 +69,23 @@ export default function App() {
   const home = homeByRole[user.role] || "/dashboard";
   const isAdmin = user.role === "admin";
   const isNurse = user.role === "nurse";
+  const isFamily = user.role === "family";
+  const toHome = <Navigate to={home} replace />;
 
   return (
     <BrowserRouter>
       <Routes>
         <Route element={<Layout user={user} onLogout={logout} />}>
-          <Route path="/" element={<Navigate to={home} replace />} />
-          <Route
-            path="/dashboard"
-            element={isAdmin ? <Dashboard /> : <Navigate to={home} replace />}
-          />
-          <Route
-            path="/nurses"
-            element={isAdmin ? <Nurses /> : <Navigate to={home} replace />}
-          />
+          <Route path="/" element={toHome} />
+          <Route path="/dashboard" element={isAdmin ? <Dashboard /> : toHome} />
+          <Route path="/nurses" element={isAdmin ? <Nurses /> : toHome} />
           <Route path="/residents" element={<Residents user={user} />} />
           <Route path="/doses" element={<Doses user={user} />} />
+          <Route path="/my-attendance" element={isNurse ? <MyAttendance /> : toHome} />
+          <Route path="/attendance" element={isAdmin ? <Attendance /> : toHome} />
           <Route
-            path="/my-attendance"
-            element={isNurse ? <MyAttendance /> : <Navigate to={home} replace />}
-          />
-          <Route
-            path="/attendance"
-            element={isAdmin ? <Attendance /> : <Navigate to={home} replace />}
+            path="/complaints"
+            element={isAdmin || isFamily ? <Complaints user={user} /> : toHome}
           />
           <Route path="*" element={<ComingSoon />} />
         </Route>
