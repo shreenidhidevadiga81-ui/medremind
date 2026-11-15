@@ -14,7 +14,7 @@ const adminLinks = [
 const nurseLinks = [
   { to: "/doses", label: "Today's doses", icon: "💊" },
   { to: "/residents", label: "Residents", icon: "🧓" },
-  { to: "/attendance", label: "Attendance", icon: "🕒" },
+  { to: "/my-attendance", label: "My attendance", icon: "🕒" },
 ];
 
 const familyLinks = [

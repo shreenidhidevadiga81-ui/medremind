@@ -7,6 +7,8 @@ import Dashboard from "./pages/Dashboard";
 import Nurses from "./pages/Nurses";
 import Residents from "./pages/Residents";
 import Doses from "./pages/Doses";
+import MyAttendance from "./pages/MyAttendance";
+import Attendance from "./pages/Attendance";
 import { getMe } from "./api";
 
 function ComingSoon() {
@@ -65,6 +67,7 @@ export default function App() {
 
   const home = homeByRole[user.role] || "/dashboard";
   const isAdmin = user.role === "admin";
+  const isNurse = user.role === "nurse";
 
   return (
     <BrowserRouter>
@@ -81,6 +84,14 @@ export default function App() {
           />
           <Route path="/residents" element={<Residents user={user} />} />
           <Route path="/doses" element={<Doses user={user} />} />
+          <Route
+            path="/my-attendance"
+            element={isNurse ? <MyAttendance /> : <Navigate to={home} replace />}
+          />
+          <Route
+            path="/attendance"
+            element={isAdmin ? <Attendance /> : <Navigate to={home} replace />}
+          />
           <Route path="*" element={<ComingSoon />} />
         </Route>
       </Routes>

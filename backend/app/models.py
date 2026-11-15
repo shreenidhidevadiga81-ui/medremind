@@ -84,7 +84,6 @@ class PasswordResetOTP(Base):
     attempts: Mapped[int] = mapped_column(default=0)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=now)
 
-    
 
 class Vital(Base):
     __tablename__ = "vitals"
@@ -99,3 +98,16 @@ class Vital(Base):
     critical_reason: Mapped[str | None] = mapped_column(String(200), nullable=True)
     recorded_by_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True)
     recorded_at: Mapped[datetime] = mapped_column(DateTime, default=now)
+
+
+class Attendance(Base):
+    __tablename__ = "attendance"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    nurse_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    day: Mapped[date] = mapped_column(Date, index=True)
+    status: Mapped[str] = mapped_column(String(10), default="present")  # present, leave
+    check_in: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    check_out: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    note: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=now)

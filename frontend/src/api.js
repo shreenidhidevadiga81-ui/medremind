@@ -97,3 +97,18 @@ export const recordVitals = (token, residentId, data) =>
   request(`/residents/${residentId}/vitals`, { method: "POST", token, body: data });
 
 export const getDashboard = (token) => request("/dashboard", { token });
+
+export const getMyAttendanceToday = (token) =>
+  request("/attendance/me/today", { token });
+
+export const checkIn = (token) =>
+  request("/attendance/check-in", { method: "POST", token });
+
+export const checkOut = (token) =>
+  request("/attendance/check-out", { method: "POST", token });
+
+export const markLeave = (token) =>
+  request("/attendance/leave", { method: "POST", token });
+
+export const listAttendance = (token, day = "") =>
+  request(`/attendance${day ? `?day=${day}` : ""}`, { token });
