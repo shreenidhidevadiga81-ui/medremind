@@ -1,196 +1,117 @@
-import { useEffect, useState } from "react";
-import {
-  listComplaints,
-  listMyComplaints,
-  sendComplaint,
-  setComplaintStatus,
-} from "../api";
+from datetime import datetime, timezone
 
-function formatDate(iso) {
-  return new Date(iso).toLocaleString([], {
-    day: "2-digit",
-    month: "short",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
+from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel, Field
+from sqlalchemy import func, select
+from sqlalchemy.orm import Session
 
-function StatusBadge({ status }) {
-  if (status === "resolved") {
-    return (
-      <span className="rounded-full bg-green-100 text-[#16A34A] px-3 py-1 text-sm font-semibold">
-        Resolved
-      </span>
-    );
-  }
-  if (status === "seen") {
-    return (
-      <span className="rounded-full bg-amber-100 text-amber-700 px-3 py-1 text-sm font-semibold">
-        Seen
-      </span>
-    );
-  }
-  return (
-    <span className="rounded-full bg-slate-200 text-slate-700 px-3 py-1 text-sm font-semibold">
-      Sent
-    </span>
-  );
-}
+from .. import models
+from ..database import get_db
+from ..deps import require_roles
 
-export default function Complaints({ user }) {
-  const token = localStorage.getItem("token");
-  const isAdmin = user?.role === "admin";
+router = APIRouter(prefix="/complaints", tags=["complaints"])
 
-  const [items, setItems] = useState([]);
-  const [message, setMessage] = useState("");
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [busy, setBusy] = useState(false);
+MAX_PER_DAY = 5
 
-  async function loadItems() {
-    setError("");
-    try {
-      setItems(isAdmin ? await listComplaints(token) : await listMyComplaints(token));
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
+
+class ComplaintCreate(BaseModel):
+    message: str = Field(min_length=1, max_length=500)
+
+
+class StatusUpdate(BaseModel):
+    status: str
+
+
+def complaint_to_dict(c: models.Complaint, family_name=None, resident_name=None):
+    return {
+        "id": c.id,
+        "message": c.message,
+        "status": c.status,
+        "created_at": c.created_at.isoformat(),
+        "family_name": family_name,
+        "resident_name": resident_name,
     }
-  }
 
-  useEffect(() => {
-    loadItems();
-  }, []);
 
-  async function handleSend() {
-    setBusy(true);
-    setError("");
-    try {
-      await sendComplaint(token, message);
-      setMessage("");
-      await loadItems();
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setBusy(false);
-    }
-  }
+@router.post("")
+def send_complaint(
+    data: ComplaintCreate,
+    db: Session = Depends(get_db),
+    user: models.User = Depends(require_roles("family")),
+):
+    message = data.message.strip()
+    if not message:
+        raise HTTPException(400, "Please write a message")
 
-  async function handleStatus(id, status) {
-    setBusy(true);
-    setError("");
-    try {
-      await setComplaintStatus(token, id, status);
-      await loadItems();
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setBusy(false);
-    }
-  }
+    start_of_day = datetime.now(timezone.utc).replace(
+        hour=0, minute=0, second=0, microsecond=0, tzinfo=None
+    )
+    sent_today = db.scalar(
+        select(func.count(models.Complaint.id)).where(
+            models.Complaint.family_user_id == user.id,
+            models.Complaint.created_at >= start_of_day,
+        )
+    )
+    if sent_today >= MAX_PER_DAY:
+        raise HTTPException(
+            400, f"You can send only {MAX_PER_DAY} messages per day. Please try tomorrow."
+        )
 
-  return (
-    <div>
-      <h1 className="text-3xl font-bold text-[#0F172A] mb-6">Complaints</h1>
+    resident = db.scalar(
+        select(models.Resident).where(models.Resident.family_user_id == user.id)
+    )
+    complaint = models.Complaint(
+        family_user_id=user.id,
+        resident_id=resident.id if resident else None,
+        message=message,
+    )
+    db.add(complaint)
+    db.commit()
+    db.refresh(complaint)
+    return complaint_to_dict(complaint, user.full_name, resident.full_name if resident else None)
 
-      {error && (
-        <div className="rounded-lg bg-red-50 border border-[#DC2626] text-[#DC2626] px-4 py-3 mb-4">
-          {error}
-        </div>
-      )}
 
-      {!isAdmin && (
-        <div className="bg-white rounded-2xl shadow p-6 mb-6">
-          <p className="text-lg text-[#0F172A] font-semibold mb-2">
-            Send a message to the admin
-          </p>
-          <textarea
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            maxLength={500}
-            rows={4}
-            placeholder="Write your issue here..."
-            className="w-full rounded-lg border border-slate-300 px-4 py-3 text-lg"
-          />
-          <div className="flex items-center justify-between mt-3">
-            <span className="text-slate-500">{message.length}/500</span>
-            <button
-              disabled={busy || message.trim().length === 0}
-              onClick={handleSend}
-              className="rounded-lg bg-[#0F766E] hover:bg-teal-800 disabled:opacity-40 text-white font-semibold px-6 py-3 text-lg"
-            >
-              Send
-            </button>
-          </div>
-        </div>
-      )}
+@router.get("/mine")
+def my_complaints(
+    db: Session = Depends(get_db),
+    user: models.User = Depends(require_roles("family")),
+):
+    rows = db.scalars(
+        select(models.Complaint)
+        .where(models.Complaint.family_user_id == user.id)
+        .order_by(models.Complaint.created_at.desc())
+    ).all()
+    return [complaint_to_dict(c, user.full_name) for c in rows]
 
-      <div className="bg-white rounded-2xl shadow overflow-x-auto">
-        <table className="w-full text-left">
-          <thead className="bg-[#F0FDFA] text-slate-600">
-            <tr>
-              <th className="px-6 py-4">Date</th>
-              {isAdmin && <th className="px-6 py-4">From</th>}
-              <th className="px-6 py-4">Message</th>
-              <th className="px-6 py-4">Status</th>
-              {isAdmin && <th className="px-6 py-4">Action</th>}
-            </tr>
-          </thead>
-          <tbody>
-            {loading && (
-              <tr>
-                <td colSpan="5" className="px-6 py-6 text-slate-500">Loading...</td>
-              </tr>
-            )}
-            {!loading && items.length === 0 && !error && (
-              <tr>
-                <td colSpan="5" className="px-6 py-6 text-slate-500">
-                  No messages yet.
-                </td>
-              </tr>
-            )}
-            {items.map((c) => (
-              <tr key={c.id} className="border-t border-slate-100 text-lg">
-                <td className="px-6 py-4 whitespace-nowrap">{formatDate(c.created_at)}</td>
-                {isAdmin && (
-                  <td className="px-6 py-4">
-                    <div className="font-semibold text-[#0F172A]">{c.family_name}</div>
-                    <div className="text-sm text-slate-500">{c.resident_name || "-"}</div>
-                  </td>
-                )}
-                <td className="px-6 py-4">{c.message}</td>
-                <td className="px-6 py-4">
-                  <StatusBadge status={c.status} />
-                </td>
-                {isAdmin && (
-                  <td className="px-6 py-4">
-                    <div className="flex gap-2">
-                      {c.status === "sent" && (
-                        <button
-                          disabled={busy}
-                          onClick={() => handleStatus(c.id, "seen")}
-                          className="rounded-lg bg-amber-500 hover:bg-amber-600 disabled:opacity-60 text-white font-semibold px-4 py-2"
-                        >
-                          Seen
-                        </button>
-                      )}
-                      {c.status !== "resolved" && (
-                        <button
-                          disabled={busy}
-                          onClick={() => handleStatus(c.id, "resolved")}
-                          className="rounded-lg bg-[#16A34A] hover:bg-green-700 disabled:opacity-60 text-white font-semibold px-4 py-2"
-                        >
-                          Resolved
-                        </button>
-                      )}
-                    </div>
-                  </td>
-                )}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  );
-}
+
+@router.get("")
+def list_complaints(
+    db: Session = Depends(get_db),
+    user: models.User = Depends(require_roles("admin")),
+):
+    rows = db.execute(
+        select(models.Complaint, models.User.full_name, models.Resident.full_name)
+        .join(models.User, models.User.id == models.Complaint.family_user_id)
+        .outerjoin(models.Resident, models.Resident.id == models.Complaint.resident_id)
+        .order_by(models.Complaint.created_at.desc())
+    ).all()
+    return [complaint_to_dict(c, fam, res) for c, fam, res in rows]
+
+
+@router.post("/{complaint_id}/status")
+def update_status(
+    complaint_id: int,
+    data: StatusUpdate,
+    db: Session = Depends(get_db),
+    user: models.User = Depends(require_roles("admin")),
+):
+    if data.status not in ("seen", "resolved"):
+        raise HTTPException(400, "Status must be 'seen' or 'resolved'")
+    complaint = db.get(models.Complaint, complaint_id)
+    if complaint is None:
+        raise HTTPException(404, "Complaint not found")
+    complaint.status = data.status
+    complaint.updated_at = models.now()
+    db.commit()
+    db.refresh(complaint)
+    return complaint_to_dict(complaint)

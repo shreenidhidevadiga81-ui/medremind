@@ -10,6 +10,7 @@ import Doses from "./pages/Doses";
 import MyAttendance from "./pages/MyAttendance";
 import Attendance from "./pages/Attendance";
 import Complaints from "./pages/Complaints";
+import ActivityLog from "./pages/ActivityLog";
 import { getMe } from "./api";
 
 function ComingSoon() {
@@ -87,6 +88,7 @@ export default function App() {
             path="/complaints"
             element={isAdmin || isFamily ? <Complaints user={user} /> : toHome}
           />
+          <Route path="/activity" element={isAdmin ? <ActivityLog /> : toHome} />
           <Route path="*" element={<ComingSoon />} />
         </Route>
       </Routes>

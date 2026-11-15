@@ -51,3 +51,12 @@ class Medicine(Base):
     name: Mapped[str] = mapped_column(String(100))
     dosage: Mapped[str] = mapped_column(String(50))  # e.g. "500 mg" or "1 tablet"
     times: Mapped[str] = mapped_column(String(100))  # e.g. "08:00,14:00,20:00"
+
+class ActivityLog(Base):
+    __tablename__ = "activity_logs"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True)
+    action: Mapped[str] = mapped_column(String(50), index=True)
+    details: Mapped[str] = mapped_column(String(300))
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=now, index=True)

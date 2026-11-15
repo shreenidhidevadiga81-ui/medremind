@@ -123,3 +123,6 @@ export const listComplaints = (token) => request("/complaints", { token });
 
 export const setComplaintStatus = (token, id, status) =>
   request(`/complaints/${id}/status`, { method: "POST", token, body: { status } });
+
+export const listActivity = (token, limit = 100) =>
+  request(`/activity?limit=${limit}`, { token });

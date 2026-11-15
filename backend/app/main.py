@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from . import models  # noqa: F401
 from .database import Base, SessionLocal, engine
 from .routers import (
+    activity,
     attendance,
     auth,
     complaints,
@@ -37,6 +38,7 @@ app.include_router(vitals.router)
 app.include_router(dashboard.router)
 app.include_router(attendance.router)
 app.include_router(complaints.router)
+app.include_router(activity.router)
 
 
 @app.get("/")
